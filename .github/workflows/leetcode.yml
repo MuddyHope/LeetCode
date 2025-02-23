@@ -1,30 +1,21 @@
-name: Sync LeetCode Submissions
+name: Sync Leetcode
 
 on:
+  workflow_dispatch:
   schedule:
-    - cron: '0 0 * * *'  # Runs daily at midnight
-  workflow_dispatch:  # Allows manual trigger
+    - cron: "0 8 * * 6"
 
 jobs:
-  update_leetcode:
+  build:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v3
-
-      - name: Install LeetCode CLI
-        run: npm install -g leetcode-cli
-
-      - name: Login to LeetCode
-        run: echo "$LEETCODE_COOKIE" | leetcode user -l
-        env:
-          LEETCODE_COOKIE: ${{ secrets.LEETCODE_COOKIE }}
-
-      - name: Fetch Submissions
-        run: leetcode submission -o ./submissions/
-
-      - name: Commit & Push
-        run: |
-          git add .
-          git commit -m "Auto-sync LeetCode $(date)" || echo "No changes to commit"
-          git push origin main
+      - name: Sync
+        uses: joshcai/leetcode-sync@v1.6
+        with:
+          github-token: ${{ github.token }}
+          leetcode-csrf-token: ${{ secrets.LEETCODE_CSRF_TOKEN }}
+          leetcode-session: ${{ secrets.LEETCODE_SESSION }}
+          destination-folder: my-folder
+          verbose: true
+          commit-header: "[LeetCode Sync]"
