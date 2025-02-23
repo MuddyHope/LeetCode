@@ -1,0 +1,30 @@
+name: Sync LeetCode Submissions
+
+on:
+  schedule:
+    - cron: '0 0 * * *'  # Runs daily at midnight
+  workflow_dispatch:  # Allows manual trigger
+
+jobs:
+  update_leetcode:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Install LeetCode CLI
+        run: npm install -g leetcode-cli
+
+      - name: Login to LeetCode
+        run: echo "$LEETCODE_COOKIE" | leetcode user -l
+        env:
+          LEETCODE_COOKIE: ${{ secrets.LEETCODE_COOKIE }}
+
+      - name: Fetch Submissions
+        run: leetcode submission -o ./submissions/
+
+      - name: Commit & Push
+        run: |
+          git add .
+          git commit -m "Auto-sync LeetCode $(date)" || echo "No changes to commit"
+          git push origin main
